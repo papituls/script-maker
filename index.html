@@ -129,7 +129,7 @@
         // ======================================================================
         // PENTING: URL ini adalah URL Web App (API) Anda yang baru
         // ======================================================================
-        const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbwao-TFJEXSCZ5lL1jxRMOvlcfYqfMqy-zqeg7cKlGIYmeoIBDe_kH4kK-7GwpFKQNc3g/exec";
+        const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbxlH6f7OJIAeBU_i6bB-UyK-5RNTQ6xMUDExPSZ27uaC_Jm0XsLXiysZd8bJwLgIIxvrA/exec";
         // ======================================================================
 
 
@@ -162,11 +162,10 @@
                     credentials: 'omit',
                     redirect: 'follow',
                     body: JSON.stringify(payload),
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' } // 'text/plain' karena GAS memproses raw body
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
                 });
                 
                 if (!response.ok) {
-                    // Coba baca respons jika ada error, mungkin ada pesan error dari server
                     const errorText = await response.text();
                     try {
                         const errorJson = JSON.parse(errorText);
@@ -183,8 +182,7 @@
                 return data;
             } catch (error) {
                 console.error('API Call Error:', error);
-                // Kita akan menangani kegagalan di level UI (onFailure)
-                return { error: error.message || "Unknown API error" }; // Mengembalikan objek error yang terstruktur
+                return { error: error.message || "Unknown API error" };
             }
         }
 
@@ -339,9 +337,6 @@
         // Service Worker (PWA) registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // Path ke service worker harus relatif terhadap root domain GitHub Pages,
-                // atau relatif terhadap base URL repo jika bukan root.
-                // Untuk https://papituls.github.io/script-maker/, service-worker.js ada di https://papituls.github.io/script-maker/service-worker.js
                 navigator.serviceWorker.register('./service-worker.js') 
                     .then(registration => {
                         console.log('ServiceWorker registered: ', registration);
