@@ -3,6 +3,323 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Maker PWA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#146fc4">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .tab-button.active {
+            border-color: #146fc4;
+            background-color: #eef2ff;
+            color: #146fc4;
+            font-weight: 600;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #146fc4;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-root">
+        <div id="login-container" class="w-full max-w-md">
+            <div class="bg-white p-8 rounded-2xl shadow-lg text-center">
+                <h1 class="text-3xl font-bold text-[#146fc4] mb-2">Selamat Datang</h1>
+                <p class="text-slate-500 mb-6">Masukkan kata sandi untuk mengakses Script Maker.</p>
+                <form id="login-form">
+                    <input type="password" id="password-input" placeholder="Masukkan kata sandi Anda" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#146fc4] focus:border-[#146fc4] transition mb-4">
+                    <button type="submit" id="login-btn" class="w-full bg-[#146fc4] text-white font-semibold py-3 px-6 rounded-lg hover:bg-[#105a9c] transition">Masuk</button>
+                    <p id="login-error" class="text-red-500 text-sm mt-4 hidden">Kata sandi salah. Coba lagi.</p>
+                </form>
+            </div>
+            <p class="text-center text-xs text-slate-400 mt-4">Created by <a href="https://www.instagram.com/papituls.id/" target="_blank" class="font-semibold hover:text-slate-500">@papituls.id</a></p>
+        </div>
+
+        <div id="app-container" class="container mx-auto max-w-4xl hidden">
+            <header class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-bold text-[#146fc4]">Script Maker</h1>
+                <p id="welcome-message" class="text-slate-600 mt-3 text-xl"></p>
+                <p class="text-slate-500 mt-2">Bikin Script Video Affiliate Shopee & Tiktok Tak Pernah Semudah Ini</p>
+            </header>
+
+            <main class="bg-white p-6 md:p-8 rounded-2xl shadow-lg">
+                <form id="script-form">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-6">
+                            <div>
+                                <label for="product-url" class="block text-sm font-medium text-slate-700 mb-2">1. Masukkan Link Produk</label>
+                                <input type="url" id="product-url" name="product-url" placeholder="https://www.shopee.com/..." class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#146fc4] focus:border-[#146fc4] transition" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">2. Pilih Jenis Naskah</label>
+                                <div class="flex flex-wrap gap-4">
+                                    <label class="flex items-center space-x-2"><input type="radio" name="script-type" value="Narasi Saja" class="h-4 w-4 text-[#146fc4] focus:ring-[#146fc4] border-slate-300" checked><span>Narasi Saja</span></label>
+                                    <label class="flex items-center space-x-2"><input type="radio" name="script-type" value="Narasi + Dialog" class="h-4 w-4 text-[#146fc4] focus:ring-[#146fc4] border-slate-300"><span>Narasi + Dialog</span></label>
+                                    <label class="flex items-center space-x-2"><input type="radio" name="script-type" value="Cinematic" class="h-4 w-4 text-[#146fc4] focus:ring-[#146fc4] border-slate-300"><span>Cinematic</span></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-6">
+                            <div>
+                                <label for="style" class="block text-sm font-medium text-slate-700 mb-2">3. Pilih Gaya Bahasa Naskah</label>
+                                <select id="style" name="style" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#146fc4] focus:border-[#146fc4] transition">
+                                    <option>Profesional & Informatif</option>
+                                    <option selected>Santai & Menghibur (Gen Z)</option>
+                                    <option>Emosional & Menyentuh</option>
+                                    <option>Direct Selling & Hard Selling</option>
+                                    <option>Storytelling (Bercerita)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="length" class="block text-sm font-medium text-slate-700 mb-2">4. Pilih Panjang Naskah</label>
+                                <select id="length" name="length" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#146fc4] focus:border-[#146fc4] transition">
+                                    <option>Sangat Pendek (15-20 detik)</option>
+                                    <option selected>Sedang (30-45 detik)</option>
+                                    <option>Panjang (60-90 detik)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8">
+                        <button type="submit" id="generate-btn" class="w-full bg-[#146fc4] text-white font-semibold py-3 px-6 rounded-lg hover:bg-[#105a9c] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#146fc4] transition flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+                            Buat Naskah Sekarang
+                        </button>
+                    </div>
+                </form>
+                <div id="result-container" class="mt-10 hidden">
+                    <h2 class="text-2xl font-bold mb-4 text-slate-800">Hasil Script (5 Variasi Hook)</h2>
+                    <div id="tab-buttons" class="mb-4 border-b border-slate-200"></div>
+                    <div class="relative">
+                        <textarea id="result-textarea" rows="15" class="w-full p-4 border border-slate-300 rounded-lg bg-slate-50 focus:ring-2 focus:ring-[#146fc4] focus:border-[#146fc4] transition" readonly placeholder="Hasil naskah akan muncul di sini..."></textarea>
+                    </div>
+                    <p class="text-xs text-slate-500 italic mt-2">Keterangan: Teks di dalam tanda [...] adalah poin-poin penting yang bisa Anda tonjolkan dalam narasi.</p>
+                    <div class="flex flex-col sm:flex-row gap-4 mt-4">
+                        <button id="copy-btn" class="w-full sm:w-auto flex-1 bg-slate-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-slate-700 transition flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>Salin Naskah</button>
+                        <button id="export-btn" class="w-full sm:w-auto flex-1 bg-green-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>Ekspor ke Google Docs</button>
+                    </div>
+                </div>
+                <div id="status-container" class="text-center mt-8">
+                    <div id="loader" class="loader mx-auto hidden"></div>
+                    <p id="status-message" class="text-slate-500 mt-4"></p>
+                </div>
+            </main>
+            <footer class="text-center mt-6 py-4">
+                <p class="text-xs text-slate-400">Created by <a href="https://www.instagram.com/papituls.id/" target="_blank" class="font-semibold hover:text-slate-500">@papituls.id</a></p>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        // ======================================================================
+        // PENTING: Ganti URL ini dengan URL Web App (API) Anda yang baru
+        // ======================================================================
+        const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbznEgBbO1afVUzGSveXOwiGaC4X_vODKYRyEOqpGBL1InY2oQbJHEOAcI7x0BFhXTt9ow/exec";
+        // ======================================================================
+
+
+        // --- DOM Elements ---
+        const loginContainer = document.getElementById('login-container');
+        const appContainer = document.getElementById('app-container');
+        const loginForm = document.getElementById('login-form');
+        const passwordInput = document.getElementById('password-input');
+        const loginBtn = document.getElementById('login-btn');
+        const loginError = document.getElementById('login-error');
+        const welcomeMessage = document.getElementById('welcome-message');
+        const form = document.getElementById('script-form');
+        const generateBtn = document.getElementById('generate-btn');
+        const resultContainer = document.getElementById('result-container');
+        const tabButtonsContainer = document.getElementById('tab-buttons');
+        const resultTextarea = document.getElementById('result-textarea');
+        const copyBtn = document.getElementById('copy-btn');
+        const exportBtn = document.getElementById('export-btn');
+        const loader = document.getElementById('loader');
+        const statusMessage = document.getElementById('status-message');
+
+        let generatedResult = { variations: [], productName: '' };
+
+        // --- Generic API Caller Function ---
+        async function callApi(payload) {
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    mode: 'cors',
+                    credentials: 'omit',
+                    redirect: 'follow',
+                    body: JSON.stringify(payload),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                });
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                const data = await response.json();
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                return data;
+            } catch (error) {
+                console.error('API Call Error:', error);
+                onFailure(error);
+                return null;
+            }
+        }
+
+        // --- Login Logic ---
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = passwordInput.value;
+            if (!password) return;
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Memeriksa...';
+            loginError.classList.add('hidden');
+
+            const payload = { action: 'checkPassword', password: password };
+            const result = await callApi(payload);
+            
+            if (result && result.name) {
+                onLoginSuccess(result.name);
+            } else {
+                onLoginFailure();
+            }
+        });
+
+        function onLoginSuccess(name) {
+            welcomeMessage.innerHTML = `Halo <span class="font-bold italic">${name}</span>, sudah siap bikin konten hari ini?`;
+            loginContainer.classList.add('hidden');
+            appContainer.classList.remove('hidden');
+        }
+
+        function onLoginFailure() {
+            passwordInput.value = '';
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Masuk';
+            loginError.classList.remove('hidden');
+        }
+
+        // --- Main App Logic ---
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const payload = {
+                action: 'generateScript',
+                productUrl: document.getElementById('product-url').value,
+                scriptType: document.querySelector('input[name="script-type"]:checked').value,
+                style: document.getElementById('style').value,
+                length: document.getElementById('length').value
+            };
+
+            setLoadingState(true, 'Tunggu yaa, 5 Script-mu lagi dibuat...');
+            resultContainer.classList.add('hidden');
+
+            const result = await callApi(payload);
+            if (result) {
+                onSuccess(result);
+            }
+        });
+
+        function onSuccess(resultObject) {
+            setLoadingState(false);
+            generatedResult = resultObject;
+            const scripts = generatedResult.variations;
+            resultContainer.classList.remove('hidden');
+            
+            tabButtonsContainer.innerHTML = '';
+            const hookFormulas = ["Masalah & Solusi", "Rasa Penasaran", "Identifikasi Audiens", "Hasil di Awal", "Pertanyaan Langsung"];
+
+            if (scripts && scripts.length > 0) {
+                scripts.forEach((script, index) => {
+                    const tabButton = document.createElement('button');
+                    tabButton.textContent = hookFormulas[index] || `Variasi ${index + 1}`;
+                    tabButton.className = 'tab-button px-4 py-2 border-b-2 border-transparent text-sm font-medium text-slate-500 hover:text-slate-700 hover:border-slate-300 transition';
+                    if (index === 0) tabButton.classList.add('active');
+                    tabButton.onclick = () => showScript(index);
+                    tabButtonsContainer.appendChild(tabButton);
+                });
+                showScript(0);
+            } else {
+                onFailure({ message: 'AI tidak memberikan variasi naskah yang valid.' });
+            }
+        }
+
+        function onFailure(error) {
+            setLoadingState(false, `Error: ${error.message}`);
+        }
+
+        function showScript(index) {
+            const scriptContent = generatedResult.variations[index];
+            resultTextarea.value = typeof scriptContent === 'string' ? scriptContent : JSON.stringify(scriptContent, null, 2);
+            document.querySelectorAll('#tab-buttons .tab-button').forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
+            });
+        }
+        
+        copyBtn.addEventListener('click', () => {
+            if(!resultTextarea.value) return;
+            navigator.clipboard.writeText(resultTextarea.value).then(() => {
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = 'Berhasil disalin!';
+                setTimeout(() => { copyBtn.innerHTML = originalText; }, 2000);
+            }).catch(err => alert('Gagal menyalin teks.'));
+        });
+
+        exportBtn.addEventListener('click', async () => {
+             if(!resultTextarea.value) return;
+             const originalText = exportBtn.innerHTML;
+             exportBtn.innerHTML = 'Membuat Dokumen...';
+             exportBtn.disabled = true;
+
+             const payload = {
+                action: 'exportToDoc',
+                content: resultTextarea.value,
+                productName: generatedResult.productName
+             };
+
+             const result = await callApi(payload);
+
+             if (result && result.url) {
+                 exportBtn.innerHTML = 'Berhasil diekspor!';
+                 setTimeout(() => {
+                     exportBtn.innerHTML = originalText;
+                     exportBtn.disabled = false;
+                     window.open(result.url, '_blank');
+                 }, 2000);
+             } else {
+                 alert('Gagal mengekspor dokumen.');
+                 exportBtn.innerHTML = originalText;
+                 exportBtn.disabled = false;
+             }
+        });
+
+        function setLoadingState(isLoading, message = '') {
+            generateBtn.disabled = isLoading;
+            generateBtn.classList.toggle('opacity-50', isLoading);
+            generateBtn.classList.toggle('cursor-not-allowed', isLoading);
+            loader.classList.toggle('hidden', !isLoading);
+            statusMessage.textContent = message;
+        }
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Script Maker</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#146fc4">
@@ -66,6 +383,7 @@
 </body>
 
 </html>
+
 
 
 
