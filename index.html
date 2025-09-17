@@ -127,9 +127,9 @@
 
     <script>
         // ======================================================================
-        // PENTING: Ganti URL ini dengan URL Web App (API) Anda yang baru
+        // PENTING: URL ini adalah URL Web App (API) Anda yang baru
         // ======================================================================
-        const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbznEgBbO1afVUzGSveXOwiGaC4X_vODKYRyEOqpGBL1InY2oQbJHEOAcI7x0BFhXTt9ow/exec";
+        const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbzCQA-J0A0iEx3tTkXJYl3_iiqojWkr5GXfyaX3X-buYeFVRu0FiLWNldqtkavBR8CfPA/exec";
         // ======================================================================
 
 
@@ -158,15 +158,17 @@
             try {
                 const response = await fetch(API_ENDPOINT, {
                     method: 'POST',
-                    mode: 'cors',
+                    mode: 'cors', // Pastikan ini diatur untuk CORS
                     credentials: 'omit',
                     redirect: 'follow',
                     body: JSON.stringify(payload),
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' } // 'text/plain' karena GAS memproses raw body
                 });
+                
                 if (!response.ok) {
                     throw new Error(`Network response was not ok: ${response.statusText}`);
                 }
+                
                 const data = await response.json();
                 if (data.error) {
                     throw new Error(data.error);
@@ -174,8 +176,8 @@
                 return data;
             } catch (error) {
                 console.error('API Call Error:', error);
-                onFailure(error);
-                return null;
+                // Kita akan menangani kegagalan di level UI (onFailure)
+                return { error: error.message || "Unknown API error" }; // Mengembalikan objek error yang terstruktur
             }
         }
 
@@ -216,20 +218,32 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const productUrl = document.getElementById('product-url').value;
+            const scriptType = document.querySelector('input[name="script-type"]:checked').value;
+            const style = document.getElementById('style').value;
+            const length = document.getElementById('length').value;
+
+            if (!productUrl) {
+                alert("Link Produk tidak boleh kosong!");
+                return;
+            }
+
             const payload = {
                 action: 'generateScript',
-                productUrl: document.getElementById('product-url').value,
-                scriptType: document.querySelector('input[name="script-type"]:checked').value,
-                style: document.getElementById('style').value,
-                length: document.getElementById('length').value
+                productUrl: productUrl,
+                scriptType: scriptType,
+                style: style,
+                length: length
             };
 
             setLoadingState(true, 'Tunggu yaa, 5 Script-mu lagi dibuat...');
             resultContainer.classList.add('hidden');
 
             const result = await callApi(payload);
-            if (result) {
+            if (result && !result.error) { // Pastikan tidak ada error dari API
                 onSuccess(result);
+            } else {
+                onFailure({ message: result.error || 'Terjadi kesalahan saat membuat script.' });
             }
         });
 
@@ -240,7 +254,7 @@
             resultContainer.classList.remove('hidden');
             
             tabButtonsContainer.innerHTML = '';
-            const hookFormulas = ["Masalah & Solusi", "Rasa Penasaran", "Identifikasi Audiens", "Hasil di Awal", "Pertanyaan Langsung"];
+            const hookFormulas = ["Masalah & Solusi", "Rasa Penasan", "Identifikasi Audiens", "Hasil di Awal", "Pertanyaan Langsung"];
 
             if (scripts && scripts.length > 0) {
                 scripts.forEach((script, index) => {
@@ -258,7 +272,7 @@
         }
 
         function onFailure(error) {
-            setLoadingState(false, `Error: ${error.message}`);
+            setLoadingState(false, `Error: ${error.message || 'Terjadi kesalahan tidak dikenal.'}`);
         }
 
         function showScript(index) {
@@ -287,7 +301,7 @@
              const payload = {
                 action: 'exportToDoc',
                 content: resultTextarea.value,
-                productName: generatedResult.productName
+                productName: generatedResult.productName || 'Naskah Tanpa Nama'
              };
 
              const result = await callApi(payload);
@@ -300,7 +314,7 @@
                      window.open(result.url, '_blank');
                  }, 2000);
              } else {
-                 alert('Gagal mengekspor dokumen.');
+                 alert('Gagal mengekspor dokumen: ' + (result.error || 'Terjadi kesalahan tidak dikenal.'));
                  exportBtn.innerHTML = originalText;
                  exportBtn.disabled = false;
              }
@@ -312,6 +326,19 @@
             generateBtn.classList.toggle('cursor-not-allowed', isLoading);
             loader.classList.toggle('hidden', !isLoading);
             statusMessage.textContent = message;
+        }
+
+        // Service Worker (PWA) registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/script-maker/service-worker.js') // Sesuaikan path jika perlu
+                    .then(registration => {
+                        console.log('ServiceWorker registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('ServiceWorker registration failed: ', registrationError);
+                    });
+            });
         }
     </script>
 </body>
