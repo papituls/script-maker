@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Script Maker PWA</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -156,14 +160,23 @@
         // --- Generic API Caller Function ---
         async function callApi(payload) {
             try {
-                const response = await fetch(API_ENDPOINT, {
+                // Untuk memastikan tidak ada caching respons OPTIONS, kita bisa menambahkan header cache control
+                const fetchOptions = {
                     method: 'POST',
                     mode: 'cors', 
                     credentials: 'omit',
                     redirect: 'follow',
                     body: JSON.stringify(payload),
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-                });
+                    headers: { 
+                        'Content-Type': 'text/plain;charset=utf-8',
+                        // Coba tambahkan cache control untuk request ini juga
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    } 
+                };
+
+                const response = await fetch(API_ENDPOINT, fetchOptions);
                 
                 if (!response.ok) {
                     const errorText = await response.text();
