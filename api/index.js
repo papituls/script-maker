@@ -36,25 +36,25 @@ let googleAuth;
 
 async function initSheetsClient() {
      console.log('initSheetsClient called');
-    if (!GOOGLE_SERVICE_ACCOUNT_EMAIL || !GOOGLE_PRIVATE_KEY) {
+    if (!GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) { // Pastikan menggunakan process.env.GOOGLE_PRIVATE_KEY di sini
         console.error('Environment variables for Google Service Account are missing.');
         throw new Error('Google Service Account credentials are not set in Vercel Environment Variables.');
     }
     console.log('Service Account Email:', GOOGLE_SERVICE_ACCOUNT_EMAIL);
-    // HINDARI logging GOOGLE_PRIVATE_KEY secara penuh di produksi, tapi untuk debugging sementara bisa
-    console.log('Private Key starts with:', GOOGLE_PRIVATE_KEY.substring(0, 50)); 
+    // Decode Base64 private key
+    const decodedPrivateKey = Buffer.from(process.env.GOOGLE_PRIVATE_KEY, 'base64').toString('utf8');
+    console.log('Private Key starts with (decoded):', decodedPrivateKey.substring(0, 50)); 
 
     googleAuth = new GoogleAuth({
         credentials: {
             client_email: GOOGLE_SERVICE_ACCOUNT_EMAIL,
-            private_key: GOOGLE_PRIVATE_KEY,
+            private_key: decodedPrivateKey, // Gunakan kunci yang sudah didekode
         },
-        scopes: ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/documents', 'https://www.googleapis.com/auth/drive'], // Tambahkan drive scope
+        scopes: ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/documents', 'https://www.googleapis.com/auth/drive'], 
     });
     sheetsClient = await googleAuth.getClient();
     console.log('Sheets client initialized successfully.');
 }
-
 // Handler utama untuk Vercel Serverless Function
 // Ini akan menerima semua request HTTP (GET, POST, dll.)
 module.exports = async (req, res) => {
