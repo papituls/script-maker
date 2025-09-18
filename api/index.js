@@ -22,8 +22,6 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // ======================================================================
 // PENTING: Kredensial service account untuk Google Sheets API
-// Nama variable: GOOGLE_SERVICE_ACCOUNT_EMAIL (email service account)
-// Nama variable: GOOGLE_PRIVATE_KEY (private key service account, ingat untuk replace \n dengan \\n)
 // ======================================================================
 const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY ? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n') : '';
@@ -287,23 +285,28 @@ function extractTextFromHtml(htmlString) {
         .trim();
     return he.decode(cleanedHtml); // Decode HTML entities
 }
-
+const { google } = require('googleapis');
 async function exportToDoc(content, productName) {
     if (!sheetsClient) {
+        console.error('Google Sheets client not initialized.');
         throw new Error('Google Sheets client not initialized.');
     }
     const docs = google.docs({ version: 'v1', auth: sheetsClient });
+    const drive = google.drive({ version: 'v3', auth: sheetsClient });
     
     const title = `Script - ${productName || "Nama Produk Tidak Dikenali"}`;
 
     try {
+        console.log('Attempting to create Google Doc with title:', title);
         const createResponse = await docs.documents.create({
             requestBody: {
                 title: title,
             },
         });
         const documentId = createResponse.data.documentId;
+        console.log('Document created successfully, ID:', documentId);
 
+        console.log('Inserting text into document...');
         await docs.documents.batchUpdate({
             documentId: documentId,
             requestBody: {
@@ -311,7 +314,7 @@ async function exportToDoc(content, productName) {
                     {
                         insertText: {
                             location: {
-                                index: 1, // Di awal dokumen
+                                index: 1,
                             },
                             text: content,
                         },
@@ -319,21 +322,10 @@ async function exportToDoc(content, productName) {
                 ],
             },
         });
+        console.log('Text inserted successfully.');
 
-        // Untuk mendapatkan URL dokumen, kita perlu tahu Folder ID jika ingin spesifik,
-        // atau cukup memberikan link ke doc tersebut.
-        // Google Docs API tidak langsung memberikan shareable link.
-        // Kita bisa asumsikan dokumen dibuat di My Drive user service account
-        // dan kemudian bagikan secara publik atau berikan link editornya.
-        // Untuk saat ini, saya akan berikan URL editornya.
-        const docUrl = `https://docs.google.com/document/d/${documentId}/edit`;
-        
-        // Opsional: Bagikan dokumen secara publik jika diinginkan (memerlukan Google Drive API scope)
-        // Jika Anda ingin ini otomatis shareable, kita perlu mengaktifkan Drive API
-        // dan menambahkan 'https://www.googleapis.com/auth/drive' ke scope
-        // Kemudian tambahkan kode seperti ini:
-        /*
-        const drive = google.drive({ version: 'v3', auth: sheetsClient });
+        // Membuat dokumen publik (opsional)
+        console.log('Sharing document publicly...');
         await drive.permissions.create({
             fileId: documentId,
             requestBody: {
@@ -341,11 +333,14 @@ async function exportToDoc(content, productName) {
                 type: 'anyone',
             },
         });
-        */
+        console.log('Document shared publicly with read-only access.');
 
+        const docUrl = `https://docs.google.com/document/d/${documentId}/edit`;
+        console.log('Generated doc URL:', docUrl);
         return docUrl;
     } catch (e) {
-        console.error("Gagal membuat Google Doc: " + e.message);
-        throw new Error("Gagal membuat Google Doc. Pastikan Service Account memiliki izin di Google Drive Anda.");
+        console.error('Gagal membuat Google Doc:', e.message);
+        console.error('Full error details:', JSON.stringify(e, null, 2));
+        throw new Error('Gagal membuat Google Doc. Pastikan Service Account memiliki izin di Google Drive Anda.');
     }
 }
