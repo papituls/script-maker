@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Script Maker PWA</title>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -131,11 +127,10 @@
 
     <script>
         // ======================================================================
-        // PENTING: URL ini adalah URL Web App (API) Anda yang baru
+        // PENTING: URL API Anda telah diperbarui.
         // ======================================================================
-        const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbxlH6f7OJIAeBU_i6bB-UyK-5RNTQ6xMUDExPSZ27uaC_Jm0XsLXiysZd8bJwLgIIxvrA/exec";
+        const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbwbdJR18OrRgMk753KGDz_Ew9Y8RXbnWhJtUyqxRhxmpA5lMPUGy7Jcugzw_QFOiEU0dw/exec";
         // ======================================================================
-
 
         // --- DOM Elements ---
         const loginContainer = document.getElementById('login-container');
@@ -160,32 +155,18 @@
         // --- Generic API Caller Function ---
         async function callApi(payload) {
             try {
-                // Untuk memastikan tidak ada caching respons OPTIONS, kita bisa menambahkan header cache control
-                const fetchOptions = {
+                const response = await fetch(API_ENDPOINT, {
                     method: 'POST',
-                    mode: 'cors', 
+                    mode: 'cors',
                     credentials: 'omit',
                     redirect: 'follow',
                     body: JSON.stringify(payload),
-                    headers: { 
-                        'Content-Type': 'text/plain;charset=utf-8',
-                        // Coba tambahkan cache control untuk request ini juga
-                        'Cache-Control': 'no-cache, no-store, must-revalidate',
-                        'Pragma': 'no-cache',
-                        'Expires': '0'
-                    } 
-                };
-
-                const response = await fetch(API_ENDPOINT, fetchOptions);
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                });
                 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    try {
-                        const errorJson = JSON.parse(errorText);
-                        throw new Error(errorJson.error || `Network response was not ok: ${response.statusText}`);
-                    } catch (e) {
-                        throw new Error(`Network response was not ok: ${response.statusText}. Server replied: ${errorText.substring(0, 100)}...`);
-                    }
+                    throw new Error(`Server Error (${response.status}): ${errorText.substring(0, 200)}`);
                 }
                 
                 const data = await response.json();
@@ -259,7 +240,7 @@
             resultContainer.classList.add('hidden');
 
             const result = await callApi(payload);
-            if (result && !result.error) { // Pastikan tidak ada error dari API
+            if (result && !result.error) {
                 onSuccess(result);
             } else {
                 onFailure({ message: result.error || 'Terjadi kesalahan saat membuat script.' });
@@ -273,7 +254,7 @@
             resultContainer.classList.remove('hidden');
             
             tabButtonsContainer.innerHTML = '';
-            const hookFormulas = ["Masalah & Solusi", "Rasa Penasan", "Identifikasi Audiens", "Hasil di Awal", "Pertanyaan Langsung"];
+            const hookFormulas = ["Masalah & Solusi", "Rasa Penasaran & Kontroversi", "Identifikasi Audiens", "Hasil di Awal", "Pertanyaan Langsung"];
 
             if (scripts && scripts.length > 0) {
                 scripts.forEach((script, index) => {
