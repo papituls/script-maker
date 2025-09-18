@@ -161,7 +161,7 @@
                     credentials: 'omit',
                     redirect: 'follow',
                     body: JSON.stringify(payload),
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                    headers: { 'Content-Type': 'application/json' }
                 });
                 
                 if (!response.ok) {
@@ -343,5 +343,6 @@
     </script>
 </body>
 </html>
+
 
 
