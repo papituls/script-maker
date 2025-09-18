@@ -41,10 +41,6 @@ async function initSheetsClient() {
         throw new Error('Google Service Account credentials are not set in Vercel Environment Variables.');
     }
     console.log('Service Account Email:', GOOGLE_SERVICE_ACCOUNT_EMAIL);
-    // Decode Base64 private key
-    const decodedPrivateKey = Buffer.from(process.env.GOOGLE_PRIVATE_KEY, 'base64').toString('utf8');
-    console.log('Private Key starts with (decoded):', decodedPrivateKey.substring(0, 50)); 
-
     googleAuth = new GoogleAuth({
         credentials: {
             client_email: GOOGLE_SERVICE_ACCOUNT_EMAIL,
