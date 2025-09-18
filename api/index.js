@@ -1,15 +1,15 @@
 // api/index.js - Vercel Serverless Function
 
 // Import modul yang dibutuhkan
-const { GoogleAuth } = require('google-auth-library'); // Untuk otentikasi ke Google Sheets API
-const { google } = require('googleapis'); // Untuk berinteraksi dengan Google Sheets API
-const fetch = require('node-fetch'); // Untuk melakukan HTTP requests (pengganti UrlFetchApp)
-const he = require('he'); // Untuk decode HTML entities
+const { GoogleAuth } = require('google-auth-library');
+const { google } = require('googleapis');
+const fetch = require('node-fetch');
+const he = require('he');
 
 // ======================================================================
 // PENTING: ID Spreadsheet ini HARUS diatur sebagai Environment Variable di Vercel
 // Nama variable: SPREADSHEET_ID
-// Nilai: ID dari Google Spreadsheet Anda (misal: 1ZZ4mhgRB0Illg-mAIx4NXVAB83W3vi7l9YNGXkM-Zlw)
+// Nilai: ID dari Google Spreadsheet Anda
 // ======================================================================
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
 
@@ -39,30 +39,25 @@ async function initSheetsClient() {
         throw new Error('Google Service Account credentials are not set in Vercel Environment Variables.');
     }
     console.log('Service Account Email:', GOOGLE_SERVICE_ACCOUNT_EMAIL);
-    // Hapus baris ini: const decodedPrivateKey = Buffer.from(process.env.GOOGLE_PRIVATE_KEY, 'base64').toString('utf8');
-    // Hapus baris ini: console.log('Private Key starts with (decoded):', decodedPrivateKey.substring(0, 50)); 
-    console.log('Private Key starts with (raw):', process.env.GOOGLE_PRIVATE_KEY.substring(0, 50)); // Cek log ini
+    console.log('Private Key starts with (raw):', process.env.GOOGLE_PRIVATE_KEY.substring(0, 50));
 
     googleAuth = new GoogleAuth({
         credentials: {
             client_email: GOOGLE_SERVICE_ACCOUNT_EMAIL,
-            private_key: process.env.GOOGLE_PRIVATE_KEY, // Gunakan langsung dari env var
+            private_key: GOOGLE_PRIVATE_KEY,
         },
-        scopes: ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/documents', 'https://www.googleapis.com/auth/drive'], 
+        scopes: ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/documents', 'https://www.googleapis.com/auth/drive'],
     });
     sheetsClient = await googleAuth.getClient();
     console.log('Sheets client initialized successfully.');
 }
+
 // Handler utama untuk Vercel Serverless Function
-// Ini akan menerima semua request HTTP (GET, POST, dll.)
 module.exports = async (req, res) => {
-    // Set headers CORS untuk mengizinkan semua origin (untuk fleksibilitas di awal)
-    // Di produksi, sebaiknya diganti dengan origin spesifik: 'https://papituls.github.io'
-    res.setHeader('Access-Control-Allow-Origin', '*'); 
+    res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    // Handle OPTIONS request (preflight CORS)
     if (req.method === 'OPTIONS') {
         res.status(200).send('OK');
         return;
@@ -77,7 +72,12 @@ module.exports = async (req, res) => {
             await initSheetsClient();
         }
 
-        const payload = req.body; // Vercel otomatis mem-parse JSON body
+        const payload = req.body;
+        console.log('Received payload:', JSON.stringify(payload, null, 2));
+        if (!payload || typeof payload !== 'object' || !payload.action) {
+            throw new Error("Payload tidak valid. Pastikan 'action' ada di body request.");
+        }
+
         const action = payload.action;
 
         let responseData;
@@ -96,46 +96,50 @@ module.exports = async (req, res) => {
         }
 
         res.status(200).json(responseData);
-
     } catch (error) {
         console.error('Server Error:', error);
         res.status(500).json({ error: `Server Error: ${error.message}` });
     }
 };
 
-// ======================================================================
-// FUNGSI-FUNGSI UTAMA LAINNYA (checkPassword, generateScript, exportToDoc)
-// Telah disesuaikan untuk Node.js dan Vercel
-// ======================================================================
-
 async function checkPassword(submittedPassword) {
     if (!submittedPassword || typeof submittedPassword !== 'string' || submittedPassword.trim() === '') {
+        console.log('Invalid password input:', submittedPassword);
         return null;
     }
 
     try {
         const sheets = google.sheets({ version: 'v4', auth: sheetsClient });
+        console.log('Attempting to access Spreadsheet ID:', SPREADSHEET_ID);
+        console.log('Range:', `${SHEET_NAME}!A2:C`);
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
-            range: `${SHEET_NAME}!A2:C`, // Ambil kolom A, B, C dari baris 2
+            range: `${SHEET_NAME}!A2:C`,
         });
 
         const data = response.data.values;
-        if (!data || data.length === 0) return null;
+        console.log('Spreadsheet data:', data);
+        if (!data || data.length === 0) {
+            console.log('No data found in Spreadsheet');
+            return null;
+        }
 
         const trimmedPassword = submittedPassword.trim();
 
         for (let i = 0; i < data.length; i++) {
             const row = data[i];
             const name = String(row[0]).trim();
-            const passwordInSheet = String(row[2]).trim(); // Kolom C adalah indeks 2
+            const passwordInSheet = String(row[2]).trim();
+            console.log(`Comparing password: ${passwordInSheet} with submitted: ${trimmedPassword}`);
             if (passwordInSheet === trimmedPassword && passwordInSheet !== "") {
                 return name || "Pengguna";
             }
         }
+        console.log('No matching password found');
         return null;
     } catch (e) {
-        console.error("Gagal mengakses Spreadsheet: " + e.message);
+        console.error("Gagal mengakses Spreadsheet:", e.message);
+        console.error("Full error:", JSON.stringify(e, null, 2));
         throw new Error("Gagal memeriksa kata sandi. Pastikan Spreadsheet ID dan Service Account benar.");
     }
 }
@@ -145,7 +149,6 @@ async function generateScript(productUrl, scriptType, style, length) {
 
     let productInfo = '';
     try {
-        // Menggunakan node-fetch untuk mengambil URL produk
         const response = await fetch(productUrl);
         if (!response.ok) {
             productInfo = `Gagal mengambil info dari URL (${response.status}): ${response.statusText}`;
@@ -238,7 +241,7 @@ async function generateScript(productUrl, scriptType, style, length) {
         6.  **Highlight:** Di dalam (BODY), tandai kalimat paling penting dan berdampak dengan format [seperti ini]. Jumlah kata di dalam highlight inilah yang akan dihitung untuk memenuhi target durasi.
 
         **LANGKAH FINAL:** Periksa kembali output Anda. Pastikan 100% valid sebagai JSON object tunggal dan SETIAP string variasi mengikuti SEMUA aturan di atas, terutama ATURAN PANJANG NARASI (Hook + Highlight + CTA) dan **ATURAN WAJIB UNTUK JENIS NASKAH**.
-        `;
+    `;
 
     const requestBody = {
         contents: [{ parts: [{ text: prompt }] }]
@@ -268,7 +271,6 @@ async function generateScript(productUrl, scriptType, style, length) {
             }
             throw new Error("Struktur JSON dari AI tidak sesuai.");
         } catch (e) {
-            // Jika parsing gagal, kembalikan teks mentah dari AI sebagai variasi pertama
             return { productName: "Gagal Parsing", variations: [generatedText] };
         }
     }
@@ -276,14 +278,13 @@ async function generateScript(productUrl, scriptType, style, length) {
 }
 
 function extractTextFromHtml(htmlString) {
-    // Menggunakan he.decode untuk menangani HTML entities
     const cleanedHtml = htmlString
         .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/ig, '')
         .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/ig, '')
         .replace(/<\/?[^>]+(>|$)/g, " ")
         .replace(/\s{2,}/g, ' ')
         .trim();
-    return he.decode(cleanedHtml); // Decode HTML entities
+    return he.decode(cleanedHtml);
 }
 
 async function exportToDoc(content, productName) {
@@ -295,7 +296,7 @@ async function exportToDoc(content, productName) {
     const drive = google.drive({ version: 'v3', auth: sheetsClient });
     
     const title = `Script - ${productName || "Nama Produk Tidak Dikenali"}`;
-    const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID; // ID folder "Export Doc"
+    const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
 
     try {
         console.log('Attempting to create Google Doc with title:', title);
@@ -334,8 +335,8 @@ async function exportToDoc(content, productName) {
         console.log('Moving document to folder...');
         await drive.files.update({
             fileId: documentId,
-            addParents: folderId, // Tambahkan ke folder ini
-            removeParents: 'root', // Hapus dari root jika perlu
+            addParents: folderId,
+            removeParents: 'root',
             requestBody: {
                 // Opsional: Update metadata lain jika diperlukan
             },
