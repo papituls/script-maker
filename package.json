@@ -10,6 +10,6 @@
     "he": "^1.2.0"
   },
   "engines": {
-    "node": "22.x"  <-- PERUBAHAN DI SINI
+    "node": "22.x"
   }
 }
