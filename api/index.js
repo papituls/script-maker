@@ -285,7 +285,7 @@ function extractTextFromHtml(htmlString) {
         .trim();
     return he.decode(cleanedHtml); // Decode HTML entities
 }
-const { google } = require('googleapis');
+
 async function exportToDoc(content, productName) {
     if (!sheetsClient) {
         console.error('Google Sheets client not initialized.');
