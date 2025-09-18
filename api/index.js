@@ -35,16 +35,20 @@ let sheetsClient;
 let googleAuth;
 
 async function initSheetsClient() {
-     console.log('initSheetsClient called');
-    if (!GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) { // Pastikan menggunakan process.env.GOOGLE_PRIVATE_KEY di sini
+    console.log('initSheetsClient called');
+    if (!GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
         console.error('Environment variables for Google Service Account are missing.');
         throw new Error('Google Service Account credentials are not set in Vercel Environment Variables.');
     }
     console.log('Service Account Email:', GOOGLE_SERVICE_ACCOUNT_EMAIL);
+    // Hapus baris ini: const decodedPrivateKey = Buffer.from(process.env.GOOGLE_PRIVATE_KEY, 'base64').toString('utf8');
+    // Hapus baris ini: console.log('Private Key starts with (decoded):', decodedPrivateKey.substring(0, 50)); 
+    console.log('Private Key starts with (raw):', process.env.GOOGLE_PRIVATE_KEY.substring(0, 50)); // Cek log ini
+
     googleAuth = new GoogleAuth({
         credentials: {
             client_email: GOOGLE_SERVICE_ACCOUNT_EMAIL,
-            private_key: decodedPrivateKey, // Gunakan kunci yang sudah didekode
+            private_key: process.env.GOOGLE_PRIVATE_KEY, // Gunakan langsung dari env var
         },
         scopes: ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/documents', 'https://www.googleapis.com/auth/drive'], 
     });
