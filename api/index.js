@@ -295,9 +295,14 @@ async function exportToDoc(content, productName) {
     const drive = google.drive({ version: 'v3', auth: sheetsClient });
     
     const title = `Script - ${productName || "Nama Produk Tidak Dikenali"}`;
+    const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID; // ID folder "Export Doc"
 
     try {
         console.log('Attempting to create Google Doc with title:', title);
+        console.log('Target folder ID:', folderId);
+        console.log('Service Account Email:', process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL);
+        
+        // Buat dokumen terlebih dahulu
         const createResponse = await docs.documents.create({
             requestBody: {
                 title: title,
@@ -306,6 +311,7 @@ async function exportToDoc(content, productName) {
         const documentId = createResponse.data.documentId;
         console.log('Document created successfully, ID:', documentId);
 
+        // Insert text
         console.log('Inserting text into document...');
         await docs.documents.batchUpdate({
             documentId: documentId,
@@ -324,7 +330,19 @@ async function exportToDoc(content, productName) {
         });
         console.log('Text inserted successfully.');
 
-        // Membuat dokumen publik (opsional)
+        // Pindahkan dokumen ke folder spesifik
+        console.log('Moving document to folder...');
+        await drive.files.update({
+            fileId: documentId,
+            addParents: folderId, // Tambahkan ke folder ini
+            removeParents: 'root', // Hapus dari root jika perlu
+            requestBody: {
+                // Opsional: Update metadata lain jika diperlukan
+            },
+        });
+        console.log('Document moved to folder successfully.');
+
+        // Opsional: Bagikan secara publik (komentar jika tidak diperlukan)
         console.log('Sharing document publicly...');
         await drive.permissions.create({
             fileId: documentId,
@@ -341,6 +359,8 @@ async function exportToDoc(content, productName) {
     } catch (e) {
         console.error('Gagal membuat Google Doc:', e.message);
         console.error('Full error details:', JSON.stringify(e, null, 2));
+        console.error('Error code:', e.code || 'N/A');
+        console.error('Error status/reason:', e.errors ? e.errors[0].reason : 'Unknown');
         throw new Error('Gagal membuat Google Doc. Pastikan Service Account memiliki izin di Google Drive Anda.');
     }
 }
