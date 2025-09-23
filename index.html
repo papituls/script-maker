@@ -292,33 +292,33 @@
             }).catch(err => alert('Gagal menyalin teks.'));
         });
 
-        exportBtn.addEventListener('click', async () => {
-             if(!resultTextarea.value) return;
-             const originalText = exportBtn.innerHTML;
-             exportBtn.innerHTML = 'Membuat Dokumen...';
-             exportBtn.disabled = true;
+        //exportBtn.addEventListener('click', async () => {
+            // if(!resultTextarea.value) return;
+            // const originalText = exportBtn.innerHTML;
+            // exportBtn.innerHTML = 'Membuat Dokumen...';
+           //  exportBtn.disabled = true;
+//
+          //   const payload = {
+          //      action: 'exportToDoc',
+           //     content: resultTextarea.value,
+             //   productName: generatedResult.productName || 'Naskah Tanpa Nama'
+            // };
 
-             const payload = {
-                action: 'exportToDoc',
-                content: resultTextarea.value,
-                productName: generatedResult.productName || 'Naskah Tanpa Nama'
-             };
+           //  const result = await callApi(payload);
 
-             const result = await callApi(payload);
-
-             if (result && result.url) {
-                 exportBtn.innerHTML = 'Berhasil diekspor!';
-                 setTimeout(() => {
-                     exportBtn.innerHTML = originalText;
-                     exportBtn.disabled = false;
-                     window.open(result.url, '_blank');
-                 }, 2000);
-             } else {
-                 alert('Gagal mengekspor dokumen: ' + (result.error || 'Terjadi kesalahan tidak dikenal.'));
-                 exportBtn.innerHTML = originalText;
-                 exportBtn.disabled = false;
-             }
-        });
+            // if (result && result.url) {
+           //      exportBtn.innerHTML = 'Berhasil diekspor!';
+           //      setTimeout(() => {
+           //          exportBtn.innerHTML = originalText;
+                 //    exportBtn.disabled = false;
+              //       window.open(result.url, '_blank');
+              //   }, 2000);
+          //   } else {
+          //       alert('Gagal mengekspor dokumen: ' + (result.error || 'Terjadi kesalahan tidak dikenal.'));
+           //      exportBtn.innerHTML = originalText;
+           //      exportBtn.disabled = false;
+         //    }
+     //   });
 
         function setLoadingState(isLoading, message = '') {
             generateBtn.disabled = isLoading;
@@ -343,6 +343,7 @@
     </script>
 </body>
 </html>
+
 
 
 
