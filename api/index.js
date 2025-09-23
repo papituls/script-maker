@@ -22,8 +22,6 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // ======================================================================
 // PENTING: Kredensial service account untuk Google Sheets API
-// Nama variable: GOOGLE_SERVICE_ACCOUNT_EMAIL (email service account)
-// Nama variable: GOOGLE_PRIVATE_KEY (private key service account, ingat untuk replace \n dengan \\n)
 // ======================================================================
 const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY ? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n') : '';
